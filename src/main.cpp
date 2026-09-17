@@ -23,7 +23,7 @@
 // Launch/deflect button for player 2
 // same thing here
 #define BUTTON_DEFLECT_2 23
-#define BUTTON_DEFLECT_2_0 34
+#define BUTTON_DEFLECT_2_0 4
 
 #define MAX_GAME_TIME 20	// Set this according to what seems reasonable for a gameplay loop time for you
 #define MAX_SCORE	10
@@ -206,11 +206,11 @@ void game_playing(MD_MAX72XX* mx)
 		dir = UP;
 		Serial.println("Up");
 	}
-	// if (digitalRead(BUTTON_DEFLECT_2_0) == LOW && x%8 > 4 && x%8 <= 8)
-	// {
-	// 	dir = UP;
-	// 	Serial.println("Up");
-	// }
+	if (digitalRead(BUTTON_DEFLECT_2_0) == LOW && x%8 > 4 && x%8 <= 8)
+	{
+		dir = UP;
+		Serial.println("Up");
+	}
 
 	mx->setPoint(x%8, y%32, true);
 	mx->setPoint((x+1)%8, y%32, true);
