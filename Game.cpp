@@ -5,9 +5,11 @@
 #include <iostream>
 #include <ncurses.h>
 
+
 Game::Game(void) {
 	// NOTE : should be millis for the esp
 	_start_time = 0;
+	_game_state = Game::START;
 	_players[0] = Player();
 	_players[1] = Player();
 	// NOTE : should be something related to the esp
@@ -24,7 +26,11 @@ void	Game::chooseRandomPlayer(void) {
 
 	int	result = coin(_random);
 	_player_turn = result;
-	mvprintw(0, 0, "%d", _player_turn); // NOTE : to remove 
+	screen.drawText(0, 0, (_player_turn == 0 ? "player1 start" : "player2 start"));
+}
+
+void	Game::initGameAssets(void) {
+	
 }
 
 void	Game::processInput(void) {

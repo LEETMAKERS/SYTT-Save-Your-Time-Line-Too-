@@ -1,6 +1,7 @@
 #pragma once
 #include "Player.hpp"
 #include <random>
+#include "Screen.hpp"
 
 #define MAX_GAME_TIME 20	// Set this according to what seems reasonable for a gameplay loop time for you
 #define MAX_SCORE	10
@@ -9,9 +10,11 @@
 #define FIRST_PLAYER 0
 #define SECOND_PLAYER 1
 
+extern	Screen screen;
+
 class	Game {
 	public:
-		enum	state {
+		enum	State {
 			START,
 			PLAYING,
 			END,
@@ -21,6 +24,7 @@ class	Game {
 	~Game(void);
 
 	void	chooseRandomPlayer(void);
+	void	initGameAssets(void);
 
 	void	processInput(void);
 	void	updateGameState(void);
@@ -35,4 +39,5 @@ class	Game {
 		Player			_players[2];
 		std::mt19937	_random;
 		bool			_player_turn = FIRST_PLAYER;
+		State			_game_state = START;
 };
