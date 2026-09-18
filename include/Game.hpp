@@ -24,7 +24,7 @@ class	Game {
 	~Game(void);
 
 	void	chooseRandomPlayer(void);
-	void	initGameAssets(void);
+	void	initGameScreen(void);
 
 	void	processInput(void);
 	void	updateGameState(void);

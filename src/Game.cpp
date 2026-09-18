@@ -1,17 +1,18 @@
-#include "Game.hpp"
-#include "Player.hpp"
+#include <Game.hpp>
+#include <Player.hpp>
 #include <ctime>
 #include <random>
 #include <iostream>
 #include <ncurses.h>
+#include <format>
 
 
 Game::Game(void) {
 	// NOTE : should be millis for the esp
 	_start_time = 0;
 	_game_state = Game::START;
-	_players[0] = Player();
-	_players[1] = Player();
+	_players[FIRST_PLAYER] = Player(FIRST_PLAYER);
+	_players[SECOND_PLAYER] = Player(SECOND_PLAYER);
 	// NOTE : should be something related to the esp
 	_random.seed(time(NULL));
 }
@@ -26,11 +27,17 @@ void	Game::chooseRandomPlayer(void) {
 
 	int	result = coin(_random);
 	_player_turn = result;
-	screen.drawText(0, 0, (_player_turn == 0 ? "player1 start" : "player2 start"));
+	screen.drawText(1, 1, (_player_turn == 0 ? "player1 start" : "player2 start"));
 }
 
-void	Game::initGameAssets(void) {
+void	Game::initGameScreen(void) {
+	screen.drawRect(screen.getWidth() / 4, 0, screen.getWidth() / 2, screen.getHeight());
+
+	// ▃▃
+
+
 	
+
 }
 
 void	Game::processInput(void) {
