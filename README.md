@@ -11,3 +11,9 @@ and vice versa.
 - If the player presses the left button while the ball is on the right side he loses by 1 point
 - If a player scores he gets to launch the ball again
 - The deflect is detected when the ball is close enough
+
+# Used material :
+- 2x MAX72 8x32 led matrix module
+- ESP32
+- 8 push buttons
+- Jumper wires
