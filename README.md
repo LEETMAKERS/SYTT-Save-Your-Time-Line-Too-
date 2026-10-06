@@ -17,3 +17,7 @@ and vice versa.
 - ESP32
 - 8 push buttons
 - Jumper wires
+
+# Image of the wiring:
+
+<img width="1204" height="1600" alt="WhatsApp Image 2026-10-07 at 12 08 19 AM" src="https://github.com/user-attachments/assets/b48a5053-ab28-4c66-a633-091188e189bc" />
