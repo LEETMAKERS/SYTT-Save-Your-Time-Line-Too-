@@ -25,9 +25,11 @@
 #define BUTTON_DEFLECT_2 23
 #define BUTTON_DEFLECT_2_0 4
 
-#define MAX_GAME_TIME 20	// Set this according to what seems reasonable for a gameplay loop time for you
+#define MAX_GAME_TIME 30	// Set this according to what seems reasonable for a gameplay loop time for you
 #define MAX_SCORE	10
 #define MIN_SCORE	1
+
+#define DEFLECT_THREASHOLD 4
 
 MD_Parola ledMatrix = MD_Parola(HARDWARE_TYPE, DI_PIN, CLK_PIN, CS_PIN, MAX_DEVICES);
 
@@ -35,6 +37,9 @@ unsigned long start_time;
 
 int player1_score = 0;
 int player2_score = 0;
+
+unsigned long game_speed = 100;
+unsigned long max_game_speed = 20;
 
 enum game_state
 {
@@ -91,135 +96,82 @@ int arrow[8*8] = {
 };
 
 int key_frame = 0;
-// just a simple packman experimentation here nothing much
-int frames[6][8*8] = {
-  {
-    0,0,0,1,1,0,0,0,
-    0,1,1,1,0,0,0,0,
-    0,1,1,0,0,0,0,0,
-    1,1,0,0,0,0,0,0,
-    1,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,
-    0,1,1,0,0,0,0,0,
-    0,0,0,1,1,0,0,0
-  },
-  {
-    0,0,0,1,1,0,0,0,
-    0,1,1,1,0,0,0,0,
-    0,1,1,0,0,0,0,0,
-    1,1,0,0,0,0,0,0,
-    1,1,0,0,0,0,0,0,
-    0,1,0,0,0,0,0,0,
-    0,1,1,0,0,0,0,0,
-    0,0,0,1,1,0,0,0
-  },
-  {
-    0,0,0,1,1,0,0,0,
-    0,1,1,1,1,0,0,0,
-    0,1,1,1,0,0,0,0,
-    1,1,1,0,0,0,0,0,
-    1,1,1,0,0,0,0,0,
-    0,1,1,0,0,0,0,0,
-    0,1,1,1,0,0,0,0,
-    0,0,0,1,1,0,0,0
-  },
-  {
-    0,0,0,1,1,0,0,0,
-    0,1,1,1,1,1,0,0,
-    0,1,1,1,1,0,0,0,
-    1,1,1,1,0,0,0,0,
-    1,1,1,1,0,0,0,0,
-    0,1,1,1,0,0,0,0,
-    0,1,1,1,1,1,0,0,
-    0,0,0,1,1,0,0,0
-  },
-  {
-    0,0,0,1,1,0,0,0,
-    0,1,1,1,1,1,1,0,
-    0,1,1,1,1,1,0,0,
-    1,1,1,1,1,0,0,0,
-    1,1,1,1,0,0,0,0,
-    0,1,1,1,1,1,0,0,
-    0,1,1,1,1,1,1,0,
-    0,0,0,1,1,0,0,0
-  },
-  {
-    0,0,0,1,1,0,0,0,
-    0,1,1,1,1,1,1,0,
-    0,1,1,1,1,1,1,0,
-    1,1,1,1,1,1,1,1,
-    1,1,1,1,1,1,1,1,
-    0,1,1,1,1,1,1,0,
-    0,1,1,1,1,1,1,0,
-    0,0,0,1,1,0,0,0
-  }
-};
 
 // coordinates of the character
-int y = 0;
+int y = 30;
 int x = 0;
 
 directions dir = STATIONARY;
 game_state state = START;
+players_turn turn = PLAYER1;
 
 void game_playing(MD_MAX72XX* mx)
 {
-	if (digitalRead(BUTTON_RIGHT) == LOW || digitalRead(BUTTON_LEFT_2) == LOW)
+	if (y <= 16) turn = PLAYER2;
+	if (y > 16) turn = PLAYER1;
+	if ((digitalRead(BUTTON_RIGHT) == LOW && y > 32 - DEFLECT_THREASHOLD) || (digitalRead(BUTTON_LEFT_2) == LOW && y < DEFLECT_THREASHOLD))
 	{
 		dir = RIGHT;
 		Serial.println("Right");
 	}
-	if (digitalRead(BUTTON_LEFT) == LOW || digitalRead(BUTTON_RIGHT_2) == LOW)
+	if ((digitalRead(BUTTON_LEFT) == LOW && y > 32 - DEFLECT_THREASHOLD) || (digitalRead(BUTTON_RIGHT_2) == LOW && y < DEFLECT_THREASHOLD))
 	{
 		dir = LEFT;
 		Serial.println("Left");
 	}
+
+
 	if (digitalRead(BUTTON_DEFLECT_1_0) == LOW && x%8 >= 0 && x%8 <= 4)
 	{
-		dir = DOWN;
-		Serial.println("Up");
+		if (turn == PLAYER1 && y > 32 - DEFLECT_THREASHOLD)
+		{
+			dir = DOWN;
+		}
 	}
 	if (digitalRead(BUTTON_DEFLECT_1) == LOW && x%8 > 4 && x%8 <= 8)
 	{
-		dir = DOWN;
-		Serial.println("Up");
+		if (turn == PLAYER1 && y > 32 - DEFLECT_THREASHOLD)
+		{
+			dir = DOWN;
+		}
 	}
-	// Serial.println("Deflect 2");
-	// delay(1000);
-	// Serial.println(digitalRead(BUTTON_DEFLECT_2));
-	// delay(1000);
-	// Serial.println("Deflect 2_0");
-	// delay(1000);
-	// Serial.println(digitalRead(BUTTON_DEFLECT_2_0));
-	// delay(1000);
-	// Serial.println("right 2");
-	// delay(1000);
-	// Serial.println(digitalRead(BUTTON_RIGHT_2));
-	// delay(1000);
-	// Serial.println("left 2");
-	// delay(1000);
-	// Serial.println(digitalRead(BUTTON_LEFT_2));
-	// delay(1000);
-
 	if (digitalRead(BUTTON_DEFLECT_2) == LOW && x%8 >= 0 && x%8 <= 4)
 	{
-		dir = UP;
-		Serial.println("Up");
+		if (turn == PLAYER2 && y < DEFLECT_THREASHOLD)
+		{
+			dir = UP;
+		}
 	}
 	if (digitalRead(BUTTON_DEFLECT_2_0) == LOW && x%8 > 4 && x%8 <= 8)
 	{
-		dir = UP;
-		Serial.println("Up");
+		if (turn == PLAYER2 && y < DEFLECT_THREASHOLD)
+		{
+			dir = UP;
+		}
+	}
+	
+	mx->setPoint(x, y, true);
+	mx->setPoint((x+1), y, true);
+	mx->setPoint((x+1), (y+1), true);
+	mx->setPoint((x), (y+1), true);
+
+	if (y > 32)
+	{
+		player2_score++;
+		dir = STATIONARY;
+		y = 0;
+		turn = PLAYER2;
+	}
+	if (y < 0)
+	{
+		dir = STATIONARY;
+		player1_score++;
+		y = 30;
+		turn = PLAYER1;
 	}
 
-	mx->setPoint(x%8, y%32, true);
-	mx->setPoint((x+1)%8, y%32, true);
-	mx->setPoint((x+1)%8, (y+1)%32, true);
-	mx->setPoint((x)%8, (y+1)%32, true);
-
-	// the capping of the x value will be changed to 16 after getting another MAX72XX module
-	if (x <= 0) x = 8;
-	if (y <= 0) y = 32;
+	if (x < 0) x = 6;
+	if (x >= 7) x = 0;
 
 	switch (dir)
 	{
@@ -230,10 +182,10 @@ void game_playing(MD_MAX72XX* mx)
 			y--;
 			break;
 		case RIGHT:
-			x++;
+			x--;
 			break;
 		case LEFT:
-			x--;
+			x++;
 			break;
 		default:
 			break;
@@ -242,37 +194,87 @@ void game_playing(MD_MAX72XX* mx)
 
 unsigned long current_time;
 
-void loop() {
+unsigned long last_frame_time = 0;
+
+int score_drawn = 0;
+
+float subtract_interval = 0.0;
+
+void set_players(int player1_buttons, int player2_buttons)
+{
+	if (player1_buttons || player2_buttons)
+	{
+		state = PLAYING;
+		if (digitalRead(BUTTON_DEFLECT_1) == LOW)	y = 30;
+		if (digitalRead(BUTTON_DEFLECT_1_0) == LOW)	y = 30;
+		if (digitalRead(BUTTON_RIGHT) == LOW)	y = 30;
+		if (digitalRead(BUTTON_LEFT) == LOW)	y = 30;
+
+		if (digitalRead(BUTTON_RIGHT_2) == LOW)	y = 0;
+		if (digitalRead(BUTTON_LEFT_2) == LOW)	y = 0;
+		if (digitalRead(BUTTON_DEFLECT_2) == LOW)	y = 0;
+		if (digitalRead(BUTTON_DEFLECT_2_0) == LOW)	y = 0;
+
+		if (y == 30) turn = PLAYER1;
+		if (y == 0) turn = PLAYER2;
+		player1_score = 0;
+		player2_score = 0;
+	}
+}
+
+void loop() 
+{
+	// Only run a frame once game_speed ms have passed
+	unsigned long now = millis();
+	int player1_buttons = digitalRead(BUTTON_DEFLECT_1) == LOW || digitalRead(BUTTON_DEFLECT_1_0) == LOW || digitalRead(BUTTON_RIGHT) == LOW || digitalRead(BUTTON_LEFT) == LOW;
+	int player2_buttons = digitalRead(BUTTON_RIGHT_2) == LOW || digitalRead(BUTTON_LEFT_2) == LOW || digitalRead(BUTTON_DEFLECT_2) == LOW || digitalRead(BUTTON_DEFLECT_2_0) == LOW;
+	if (now - last_frame_time < game_speed)
+		return;
+	last_frame_time = now;
+
 	MD_MAX72XX* mx = ledMatrix.getGraphicObject();
 
+	if (state != FINISH)
+		mx->clear();
+
+	mx->setPoint(0, 0, true);
 	switch (state)
 	{
 		case START:
-		case FINISH:
-			if (digitalRead(BUTTON_RIGHT) == LOW || digitalRead(BUTTON_LEFT) == LOW 
-			|| digitalRead(BUTTON_DEFLECT_1) == LOW || digitalRead(BUTTON_DEFLECT_2) == LOW
-			|| digitalRead(BUTTON_DEFLECT_1_0) == LOW)
-				state = PLAYING;
-			ledMatrix.setTextAlignment(PA_CENTER);
-			// ledMatrix.print(state == FINISH ? "FINISH" : "START");
 			for (int i = 0; i < 8 * 8; i++)
 			{
+				set_players(player1_buttons, player2_buttons);
 				mx->setPoint((i)%8, i/8 + 12, arrow[i]);
 			}
 			break;
+		case FINISH:
+			set_players(player1_buttons, player2_buttons);
+			char scoreBuffer[16]; 
+			sprintf(scoreBuffer, "%d - %d", player1_score, player2_score);
+
+			ledMatrix.setTextAlignment(PA_CENTER);
+			ledMatrix.print(scoreBuffer);
+			break;
 		case PLAYING:
+			subtract_interval += 0.1;
+
+			if (subtract_interval >= 2.0)
+			{
+				subtract_interval = 0.0;
+				if (game_speed > max_game_speed)
+					game_speed--;
+			}
+
 			current_time = millis();
-			// if ((current_time - start_time)/1000 > MAX_GAME_TIME)
-			// {
-			// 	start_time = millis();
-			// 	state = FINISH;
-			// }
+			if ((current_time - start_time)/1000 > MAX_GAME_TIME)
+			{
+				start_time = millis();
+				state = FINISH;
+			}
 			// the game-play loop happens here
 			game_playing(mx);
 			break;
 		default:
 			break;
 	}
-	delay(200);
-	mx->clear(); 
 }
